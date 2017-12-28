@@ -8,20 +8,25 @@ function storeAllFilesAndFunctions(error, stdout, stderr) {
         console.log("Line: %s", element);
         var array = element.split(':'),
             file = array[0], func = array[1];
-        file1 = file.replace(/\//gi,"_").replace(/^\./gi, "").replace(/\.js$/gi, "");
+        file1 = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
         func1 = func.slice(0, func.indexOf("(")).replace(/^function /, "");
-        //console.log("file: %s\nfunc: %s", file1, func1);
+
+
         if (!BIM.files.hasOwnProperty(file1)) {
-            BIM.files = { file1 : [] };
+            BIM.files[file1] = [];
         }
 
-        BIM.files.file1.push(func1);
+        BIM.files[file1].push(func1);
         displayAllBIM();
     });
 }
 
 function displayAllBIM() {
     console.log(JSON.stringify(BIM, null, 4));
+}
+
+function generateResults(){
+    
 }
 
 function main (){

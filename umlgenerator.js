@@ -1,4 +1,11 @@
 var exec = require('child_process').exec;
+var date = new Date();
+var hours = date.getHours();
+var year = date.getFullYear();
+var month = date.getMonth();
+var day = date.getDay();
+var minutes = date.getMinutes();
+var resultsDate = year + "_" + month + "_" + day + "_" + hours + "_" + minutes;
 var BIM = { files : {}};
 
 
@@ -17,8 +24,10 @@ function storeAllFilesAndFunctions(error, stdout, stderr) {
         }
 
         BIM.files[file1].push(func1);
-        displayAllBIM();
+        //displayAllBIM();
+        // generateResults();
     });
+    return "done";
 }
 
 function displayAllBIM() {
@@ -26,7 +35,9 @@ function displayAllBIM() {
 }
 
 function generateResults(){
-    
+    console.log(resultsDate.toString());
+    exec("mkdir result_" + resultsDate);
+
 }
 
 function main (){
@@ -36,13 +47,19 @@ function main (){
     }
     var param = process.argv[2];
     BIM.path = param;
-    getAllFilesAndFunctions();
-    displayAllBIM();
-}
+
+    return new Promise(function(resolve, reject){
+            resolve('Success');
+            return getAllFilesAndFunctions();
+    })
+        // .then(storeAllFilesAndFunctions)
+        .then(displayAllBIM())
+        .then(generateResults());
+    }
 
 function getAllFilesAndFunctions() {
     console.log("Checking functions in %s", BIM.path);
-    exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", storeAllFilesAndFunctions);
+    return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", storeAllFilesAndFunctions);
 
 }
 

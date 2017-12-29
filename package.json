@@ -1,0 +1,19 @@
+{
+  "name": "umlgenerator",
+  "version": "1.0.0",
+  "description": "Generates UML diagrams based on src.",
+  "main": "umlgenerator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Adela & Alex",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hackzor4/umlgenerator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hackzor4/umlgenerator/issues"
+  },
+  "homepage": "https://github.com/hackzor4/umlgenerator#readme"
+}

@@ -1,4 +1,6 @@
-var exec = require('child_process').exec;
+var Promise = require('bluebird');
+// var shell = require('shelljs');
+var exec = require('child-process-promise').exec;
 
 var date = new Date();
 var hours = date.getHours();
@@ -7,13 +9,14 @@ var month = date.getMonth() +1;
 var day = date.getDate();
 var minutes = date.getMinutes();
 var resultsDate = year + "_" + month + "_" + day + "_" + hours + "_" + minutes;
-var BIM = { files : {}};
 
+var BIM = { files : {},
+};
 
-function storeAllFilesAndFunctions(error, stdout, stderr) {
-    console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
+function storeAllFilesAndFunctions(stdout) {
+    // console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
     stdout.split("\n").slice(0, -1).forEach(function(element) {
-        console.log("Line: %s", element);
+        // console.log("Line: %s", element);
         var array = element.split(':'),
             file = array[0], func = array[1];
         file1 = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
@@ -24,20 +27,15 @@ function storeAllFilesAndFunctions(error, stdout, stderr) {
             BIM.files[file1] = { "all_functions" : [],
                                  "all_requires" : []
                                 };
-
         }
-
         BIM.files[file1].all_functions.push(func1);
-        displayAllBIM();
-        generateResults();
     });
-    return "done";
-}
+};
 
 function storeAllFilesAndRequires(error, stdout, stderr) {
-    console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
+    // console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
     stdout.split("\n").slice(0, -1).forEach(function(element) {
-        console.log("Line: %s", element);
+        // console.log("Line: %s", element);
         var array = element.split(':'),
             file = array[0], func = array[1];
         file1 = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
@@ -51,16 +49,32 @@ function storeAllFilesAndRequires(error, stdout, stderr) {
 
         BIM.files[file1].push(func1);
     });
-    return "done";
 }
 
 function displayAllBIM() {
-    console.log(JSON.stringify(BIM, null, 4));
+    console.log("The BIM: \n", JSON.stringify(BIM, null, 4));
 }
 
 function generateResults(){
     console.log(resultsDate.toString());
     exec("mkdir result_" + resultsDate);
+}
+
+function getAllFilesAndFunctions() {
+    console.log("Checking functions in %s", BIM.path);
+    return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", storeAllFilesAndFunctions);
+}
+
+function getAllFilesAndRequires() {
+    console.log("Checking functions in %s", BIM.path);
+    return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\"", storeAllFilesAndRequires);
+}
+
+function promiseFromChildProcess(command) {
+    return new Promise(function (resolve, reject) {
+        command.addListener("error", function(){return "error";});
+        command.addListener("exit", function (code){ if (code === 0) { resolve('solved'); } else { reject('rejected'); } });
+    });
 }
 
 function main (){
@@ -71,30 +85,21 @@ function main (){
     var param = process.argv[2];
     BIM.path = param;
 
-    return new Promise(function(resolve, reject){
-            resolve('Success');
-            return getAllFilesAndFunctions();
-    })
-        // .then(storeAllFilesAndFunctions)
-        .then(displayAllBIM())
-        .then(generateResults());
-
-    //getAllFilesAndRequires();
-}
-
-function getAllFilesAndFunctions() {
-    console.log("Checking functions in %s", BIM.path);
-    return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", storeAllFilesAndFunctions);
-
-}
-
-function getAllFilesAndRequires() {
-    console.log("Checking functions in %s", BIM.path);
-    return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\"", storeAllFilesAndRequires);
+    exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"")
+        .then(function (result) {
+        var stdout = result.stdout;
+        // console.log(stdout);
+        storeAllFilesAndFunctions(stdout);
+        })
+        .then(displayAllBIM)
+        .catch(function (err) {
+            console.error('ERROR: ', err);
+        });;
 
 }
 
 main();
+
 
 
 

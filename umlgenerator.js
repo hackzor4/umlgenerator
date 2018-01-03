@@ -1,5 +1,4 @@
 var Promise = require('bluebird');
-// var shell = require('shelljs');
 var exec = require('child-process-promise').exec;
 
 var date = new Date();
@@ -19,6 +18,7 @@ function addNewFileModule(file, type) {
         {
             "all_functions" : [],
             "all_requires" : [],
+            "all_exports" : [],
             "properties" : {
             "file_type" : type
         }
@@ -38,6 +38,32 @@ function storeAllFilesAndFunctions(stdout) {
         addNewFileModule(file1, "internal");
 
         BIM.files[file1].all_functions.push(func1);
+    });
+};
+
+function storeAllFilesAndExports(stdout) {
+    // example lines:
+    // ../TSR/racoam/src/5g/5gController.js:module.exports.initialize = initialize;
+    // ../TSR/racoam/src/5g/5gController.js:module.exports.teardown = teardown;
+    // ../TSR/racoam/src/5g/5gController.js:module.exports.blockCell = blockCell;
+    // ../TSR/racoam/src/5g/5gController.js:module.exports.unblockCell = unblockCell;
+    // ../TSR/racoam/src/5g/5gController.js:module.exports.handleLinkStatus = handleLinkStatus;
+
+    stdout.split("\n").slice(0, -1).forEach(function(element) {
+        var element_array = element.split(':'),
+            file = element_array[0],
+            func = element_array[1];
+        file_name = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
+        function_name = func.split('exports.');
+        aux = function_name[1].split('=');
+        export_name = aux[0];
+
+
+        console.log("%j",export_name);
+        addNewFileModule(file_name, "internal");
+
+        BIM.files[file_name].all_exports.push(export_name);
+
     });
 };
 
@@ -141,6 +167,7 @@ function generateResults(){
     exec("mkdir result_" + resultsDate);
 }
 
+
 function main (){
     if (process.argv.length <= 2) {
         console.log("Please enter the path");
@@ -155,7 +182,6 @@ function main (){
             // console.log(stdout);
             storeAllFilesAndFunctions(stdout);
         })
-        //.then(displayAllBIM)
         .then(function (result) {
             return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\"");
         })
@@ -167,7 +193,7 @@ function main (){
         .then(displayAllBIM)
         .catch(function (err) {
             console.error('ERROR: ', err);
-        });;
+        });
 
 }
 

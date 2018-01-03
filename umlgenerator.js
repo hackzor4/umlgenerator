@@ -13,6 +13,18 @@ var resultsDate = year + "_" + month + "_" + day + "_" + hours + "_" + minutes;
 var BIM = { files : {},
 };
 
+function  addNewFileModule(file, type) {
+    if (!BIM.files.hasOwnProperty(file)) {
+        {
+            "all_functions" : [],
+            "all_requires" : [],
+            "properties" : {
+            "file_type" : type
+        }
+        };
+    };
+}
+
 function storeAllFilesAndFunctions(stdout) {
     // console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
     stdout.split("\n").slice(0, -1).forEach(function(element) {
@@ -22,11 +34,8 @@ function storeAllFilesAndFunctions(stdout) {
         file1 = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
         func1 = func.slice(0, func.indexOf("(")).replace(/^function /, "");
 
-        if (!BIM.files.hasOwnProperty(file1)) {
-            BIM.files[file1] = { "all_functions" : [],
-                                 "all_requires" : []
-                                };
-        };
+        addNewFileModule(file1, "internal");
+
         BIM.files[file1].all_functions.push(func1);
     });
 };
@@ -52,17 +61,8 @@ function storeAllFilesAndRequires(stdout) {
         nameOfRequire2 = nameOfRequire1.slice(0, nameOfRequire1.indexOf("\""));
         //console.log("File is: %s, require is: 0: %s. 1: %s, 2:%s!", file1, nameOfRequire, nameOfRequire1, nameOfRequire2);
 
-        if (!BIM.files.hasOwnProperty(file1)) {
-            //console.log("ERROR: strange, the file %s should already exist in the list", file1);
-            BIM.files[file1] =
-            {
-                "all_functions" : [],
-                "all_requires" : [],
-                "properties" : {
-                    "file_type" : "internal"
-                }
-            };
-        };
+        addNewFileModule(file1, "internal");
+
         var nameOfVarRequire = "?undefined?";
         if (nameOfRequire.indexOf("var ") > -1) {
             nameOfVarRequire = nameOfRequire.slice(nameOfRequire.indexOf("var ") + 4, nameOfRequire.indexOf(" = "));
@@ -89,22 +89,7 @@ function verifyAndAddNewModule(module) {
 
     if (module.indexOf("@") > -1) {
         //project nokia external module
-        if (!BIM.files.hasOwnProperty(module)) {
-            console.log("Found 0: %s", module);
-            // add module(=file) as new
-            BIM.files[module] =
-            {
-                "all_functions" : [],
-                "all_requires" : [],
-                "properties" : {
-                    "file_type" : "nokia_external"
-                }
-            };
-        } else {
-            //nothing to do, module already added
-            console.log("Found 1: %s", module);
-            return 1;
-        }
+        addNewFileModule(module, "external");
     } else {
         // solve path to module as it could be something like:
         // "./cm/localCellQueryApi" or
@@ -113,28 +98,10 @@ function verifyAndAddNewModule(module) {
             //project local module name
             console.log("Found 2: %s", module);
             var moduleCompleteName = getModuleCompleteName(module);
-            if (!BIM.files.hasOwnProperty(moduleCompleteName)) {
-                BIM.files[module] =
-                {
-                    "all_functions" : [],
-                    "all_requires" : [],
-                    "properties" : {
-                        "file_type" : "type_internal"
-                    }
-                };
-            }
+            addNewFileModule(moduleCompleteName, "internal);
         } else { //simple name - so node standard module
             console.log("Found 3: %s", module);
-            if (!BIM.files.hasOwnProperty(module)) {
-                BIM.files[module] =
-                {
-                    "all_functions" : [],
-                    "all_requires" : [],
-                    "properties" : {
-                        "file_type" : "node_standard"
-                    }
-                };
-            }
+            addNewFileModule(module, "node_external");
         }
     }
 

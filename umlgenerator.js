@@ -41,6 +41,7 @@ function storeAllFilesAndFunctions(stdout) {
     });
 };
 
+
 function storeAllFilesAndExports(stdout) {
     // example lines:
     // ../TSR/racoam/src/5g/5gController.js:module.exports.initialize = initialize;
@@ -66,6 +67,7 @@ function storeAllFilesAndExports(stdout) {
 
     });
 };
+
 
 function storeAllFilesAndRequires(stdout) {
     // console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
@@ -110,8 +112,6 @@ function storeAllFilesAndRequires(stdout) {
         verifyAndAddRequireModule(nameOfRequire2, newName);
 
     });
-    //displayAllBIM();
-    return "done";
 }
 
 function verifyAndAddRequireModule(module, moduleCompleteName) {
@@ -189,6 +189,10 @@ function main (){
             var stdout = result.stdout;
             // console.log(stdout);
             storeAllFilesAndRequires(stdout);
+            return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"module.exports.\" | grep -iv \"forTests\"");
+        }).then(function(result){
+            var stdout = result.stdout;
+            storeAllFilesAndExports(stdout);
         })
         .then(displayAllBIM)
         .catch(function (err) {

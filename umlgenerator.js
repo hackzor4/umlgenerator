@@ -13,8 +13,9 @@ var resultsDate = year + "_" + month + "_" + day + "_" + hours + "_" + minutes;
 var BIM = { files : {},
 };
 
-function  addNewFileModule(file, type) {
+function addNewFileModule(file, type) {
     if (!BIM.files.hasOwnProperty(file)) {
+        BIM.files[file] =
         {
             "all_functions" : [],
             "all_requires" : [],
@@ -98,7 +99,7 @@ function verifyAndAddNewModule(module) {
             //project local module name
             console.log("Found 2: %s", module);
             var moduleCompleteName = getModuleCompleteName(module);
-            addNewFileModule(moduleCompleteName, "internal);
+            addNewFileModule(moduleCompleteName, "internal");
         } else { //simple name - so node standard module
             console.log("Found 3: %s", module);
             addNewFileModule(module, "node_external");

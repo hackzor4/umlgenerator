@@ -74,22 +74,26 @@ function storeAllFilesAndRequires(stdout) {
         var obj = {} ;
         obj["require"] = nameOfRequire2;
         obj["nameOfVariable"] = nameOfVarRequire;
+        var newName = getModuleCompleteName(file1);
+        obj["absoluteNameOfRequire"] = newName;
+        obj["absoluteNameOfRequirwrw"] = "trilii";
 
         BIM.files[file1].all_requires.push(obj);
 
-        //check if module require is from current code (file_type = internal) or not - will be added as file)_type=external
-        verifyAndAddNewModule(nameOfRequire2);
+        //check if module require is from current code (file_type = internal) or not - will be added as file_type=external
+        verifyAndAddRequireModule(nameOfRequire2, newName);
 
     });
-    displayAllBIM();
+    //displayAllBIM();
     return "done";
 }
 
-function verifyAndAddNewModule(module) {
+function verifyAndAddRequireModule(module, moduleCompleteName) {
     console.log("Checking if module is new: %s", module);
 
     if (module.indexOf("@") > -1) {
         //project nokia external module
+        console.log("Found nokia external module: %s", module);
         addNewFileModule(module, "external");
     } else {
         // solve path to module as it could be something like:
@@ -97,23 +101,34 @@ function verifyAndAddNewModule(module) {
         // "../../src/rcpServices/manager")
         if (module.lastIndexOf("\.") > -1) {
             //project local module name
-            console.log("Found 2: %s", module);
-            var moduleCompleteName = getModuleCompleteName(module);
+            console.log("Found local module name: %s", module);
+            //var moduleCompleteName = getModuleCompleteName(module);
             addNewFileModule(moduleCompleteName, "internal");
         } else { //simple name - so node standard module
-            console.log("Found 3: %s", module);
+            console.log("Found node external module: %s", module);
             addNewFileModule(module, "node_external");
         }
     }
-
 }
-function getModuleCompleteName(module) {
-    console.log ("getModuleCompleteName for %s", module);
 
-    Object.keys(BIM.files).filter(function(el) {
-        var result=/module$/.test(BIM.files[el]) ;
-        return result;
-    }).length>0? console.log(">>> FOUND"): console.log("... not FOUND");
+function transformRelativeNameToAbsoluteName(name) {
+    //file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
+    return name.slice(name.lastIndexOf("\.") + 1, name.length).replace(/\//gi, "_");
+}
+
+function getModuleCompleteName(module) {
+
+    //tranform module name by replacing "/" with "_" and delete all .. or . before name
+    // Example: "../common/networkPlanUtil" is transformed into "common_networkPlanUtil"
+    // or "./util/waitFor" is transformed into "util_waitFor"
+    //the name obtained like this should match at least one of the already existing BIM files/modules
+    var newName = transformRelativeNameToAbsoluteName(module);
+    console.log ("getModuleCompleteName for %s is %s", module, newName);
+
+    Object.keys(BIM.files).some(function(el) {
+        console.log("Checking if: %s can be found in: %s!", newName, el);
+        return el.indexOf(newName)>-1;
+    })?console.log(">>> FOUND"):console.log("... not FOUND");
 }
 
 function displayAllBIM() {
@@ -140,7 +155,7 @@ function main (){
             // console.log(stdout);
             storeAllFilesAndFunctions(stdout);
         })
-        .then(displayAllBIM)
+        //.then(displayAllBIM)
         .then(function (result) {
             return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\"");
         })

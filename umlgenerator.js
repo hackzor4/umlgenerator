@@ -1,5 +1,6 @@
 var Promise = require('bluebird');
 var exec = require('child-process-promise').exec;
+var fs = require('fs');
 
 var date = new Date();
 var hours = date.getHours();
@@ -59,8 +60,6 @@ function storeAllFilesAndExports(stdout) {
         aux = function_name[1].split('=');
         export_name = aux[0];
 
-
-        console.log("%j",export_name);
         addNewFileModule(file_name, "internal");
 
         BIM.files[file_name].all_exports.push(export_name);
@@ -155,16 +154,62 @@ function getModuleCompleteName(module) {
         console.log("Checking if: %s can be found in: %s!", newName, el);
         return el.indexOf(newName)>-1;
     })?console.log(">>> FOUND"):console.log("... not FOUND");
+    return newName;
 }
 
 function displayAllBIM() {
     console.log(">>>>>>>>>>> The BIM: \n", JSON.stringify(BIM, null, 4));
+    return BIM;
 }
 
 function generateResults(){
+    var folder_name = resultsDate.toString();
+    var modules, module_name, afunc, pufunc,pvfunc, index;
+
+    index = 0;
+
+    modules = Object.keys(BIM.files);
+    module_name = modules[0];
+
+    afunc = BIM.files[module_name].all_functions;
+    pufunc = BIM.files[module_name].all_exports;
+    pvfunc = BIM.files[module_name].all_requires;
+
+    var afunctions = [];
+    var pubfunctions = [];
+
+    afunc.forEach(function(element){afunctions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+    pufunc.forEach(function(element){pubfunctions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+
+    var puml_code =
+        "@startuml\n" +
+        "\n" +
+        "package \"" + module_name + "\" {\n" +
+        "    package \" all_functions \" {\n" +
+        afunctions.toString().replace(/,+/g, '')+
+        "    }\n" +
+        "    package \" public_functions \" {\n" +
+        pubfunctions.toString().replace(/,+/g, '')+
+        "    }\n" +
+        // "    package \" private_functions \" {\n" +
+        // "        [" + pvfunc + "]\n" +
+        // "    }\n" +
+        "}\n" +
+        "\n" +
+        "@enduml\n";
+
     console.log("Generating results ....");
-    console.log(resultsDate.toString());
-    exec("mkdir result_" + resultsDate);
+    exec("mkdir result_" + folder_name)
+        .then(function () {
+            fs.writeFile("./result_" + folder_name + "/"+ module_name +".puml", puml_code, function(err) {
+                if(err) {
+                    return console.log(err);
+                }
+                console.log("The file was saved!");
+            });
+    });
+
+
 }
 
 
@@ -195,10 +240,10 @@ function main (){
             storeAllFilesAndExports(stdout);
         })
         .then(displayAllBIM)
+        //.then(generateResults)
         .catch(function (err) {
             console.error('ERROR: ', err);
         });
-
 }
 
 main();

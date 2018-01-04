@@ -1,6 +1,7 @@
 var Promise = require('bluebird');
 var exec = require('child-process-promise').exec;
 var fs = require('fs');
+var _ = require('underscore');
 
 var date = new Date();
 var hours = date.getHours();
@@ -9,6 +10,7 @@ var month = date.getMonth() +1;
 var day = date.getDate();
 var minutes = date.getMinutes();
 var resultsDate = year + "_" + month + "_" + day + "_" + hours + "_" + minutes;
+var folder_name = resultsDate.toString();
 
 var BIM = { files : {},
 };
@@ -163,53 +165,49 @@ function displayAllBIM() {
 }
 
 function generateResults(){
-    var folder_name = resultsDate.toString();
-    var modules, module_name, afunc, pufunc,pvfunc, index;
+    var afunc, pufunc,pvfunc;
 
-    index = 0;
+    Object.keys(BIM.files).filter(function(element){
+        // console.log("Za element: ", JSON.stringify(BIM.files[element],null,4));
+        return BIM.files[element].properties.file_type.indexOf('internal') == 0;
+    }).forEach(function(module_name){
+        console.log("Generating results for %s", module_name);
 
-    modules = Object.keys(BIM.files);
-    module_name = modules[0];
+        var public_functions = [];
+        var private_functions = [];
 
-    afunc = BIM.files[module_name].all_functions;
-    pufunc = BIM.files[module_name].all_exports;
-    pvfunc = BIM.files[module_name].all_requires;
 
-    var afunctions = [];
-    var pubfunctions = [];
+        afunc = BIM.files[module_name].all_functions;
 
-    afunc.forEach(function(element){afunctions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
-    pufunc.forEach(function(element){pubfunctions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+        pufunc = BIM.files[module_name].all_exports;
+        pufunc.forEach(function(element){public_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+        pvfunc = _.without(afunc, pufunc).forEach(function(element){private_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
 
-    var puml_code =
-        "@startuml\n" +
-        "\n" +
-        "package \"" + module_name + "\" {\n" +
-        "    package \" all_functions \" {\n" +
-        afunctions.toString().replace(/,+/g, '')+
-        "    }\n" +
-        "    package \" public_functions \" {\n" +
-        pubfunctions.toString().replace(/,+/g, '')+
-        "    }\n" +
-        // "    package \" private_functions \" {\n" +
-        // "        [" + pvfunc + "]\n" +
-        // "    }\n" +
-        "}\n" +
-        "\n" +
-        "@enduml\n";
 
-    console.log("Generating results ....");
-    exec("mkdir result_" + folder_name)
-        .then(function () {
-            fs.writeFile("./result_" + folder_name + "/"+ module_name +".puml", puml_code, function(err) {
-                if(err) {
-                    return console.log(err);
-                }
-                console.log("The file was saved!");
-            });
+        var puml_code =
+            "@startuml\n" +
+            "\n" +
+            "package \"" + module_name + "\" {\n" +
+            "    package \" all_functions \" {\n" +
+            // afunctions.toString().replace(/,+/g, '')+
+            "    \n" +
+            "    package \" public_functions \" {\n" +
+            public_functions.toString().replace(/,+/g, '')+
+            "    }\n" +
+            "    package \" private_functions \" {\n" +
+            private_functions.toString().replace(/,+/g, '')+
+            "    }\n" +
+            "}\n" +
+            "}\n" +
+            "@enduml\n";
+
+        fs.writeFile("./result_" + folder_name + "/"+ module_name +".puml", puml_code, function(err) {
+            if(err) {
+                return console.log(err);
+            }
+            console.log("The file was saved!");
+        });
     });
-
-
 }
 
 
@@ -240,7 +238,10 @@ function main (){
             storeAllFilesAndExports(stdout);
         })
         .then(displayAllBIM)
-        //.then(generateResults)
+        .then(function(){
+            return exec("mkdir result_" + folder_name);
+        })
+        .then(generateResults)
         .catch(function (err) {
             console.error('ERROR: ', err);
         });

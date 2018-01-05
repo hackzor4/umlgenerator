@@ -16,6 +16,7 @@ var BIM = { files : {},
 };
 
 function addNewFileModule(file, type) {
+	console.log("Add new file module: %s", file);
     if (!BIM.files.hasOwnProperty(file)) {
         BIM.files[file] =
         {
@@ -104,9 +105,10 @@ function storeAllFilesAndRequires(stdout) {
         var obj = {} ;
         obj["require"] = nameOfRequire2;
         obj["nameOfVariable"] = nameOfVarRequire;
-        var newName = getModuleCompleteName(file1);
+        var newName = getModuleCompleteName(nameOfRequire2);
         obj["absoluteNameOfRequire"] = newName;
         obj["absoluteNameOfRequirwrw"] = "trilii";
+	//console.log("new name is: %s for %s", newName, nameOfRequire2 );
 
         BIM.files[file1].all_requires.push(obj);
 
@@ -117,7 +119,7 @@ function storeAllFilesAndRequires(stdout) {
 }
 
 function verifyAndAddRequireModule(module, moduleCompleteName) {
-    console.log("Checking if module is new: %s", module);
+    //console.log("Checking if module is new: %s", module);
 
     if (module.indexOf("@") > -1) {
         //project nokia external module
@@ -152,12 +154,18 @@ function getModuleCompleteName(module) {
     //the name obtained like this should match at least one of the already existing BIM files/modules
     var newName = transformRelativeNameToAbsoluteName(module);
     console.log ("getModuleCompleteName for %s is %s", module, newName);
+    var toReturn = newName;
 
     Object.keys(BIM.files).some(function(el) {
-        console.log("Checking if: %s can be found in: %s!", newName, el);
-        return el.indexOf(newName)>-1;
-    })?console.log(">>> FOUND"):console.log("... not FOUND");
-    return newName;
+        //console.log("Checking if: %s can be found in: %s!", newName, el);
+	if (el.indexOf(newName)>-1) {
+		toReturn = el;
+		return true;
+	} else {
+		return false;
+	}
+    }); 
+    return toReturn;
 }
 
 function displayAllBIM() {

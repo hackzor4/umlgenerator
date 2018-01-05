@@ -30,7 +30,6 @@ function addNewFileModule(file, type) {
 }
 
 function storeAllFilesAndFunctions(stdout) {
-    // console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
     stdout.split("\n").slice(0, -1).forEach(function(element) {
         // console.log("Line: %s", element);
         var array = element.split(':'),
@@ -46,32 +45,34 @@ function storeAllFilesAndFunctions(stdout) {
 
 
 function storeAllFilesAndExports(stdout) {
+
     // example lines:
     // ../TSR/racoam/src/5g/5gController.js:module.exports.initialize = initialize;
     // ../TSR/racoam/src/5g/5gController.js:module.exports.teardown = teardown;
     // ../TSR/racoam/src/5g/5gController.js:module.exports.blockCell = blockCell;
     // ../TSR/racoam/src/5g/5gController.js:module.exports.unblockCell = unblockCell;
     // ../TSR/racoam/src/5g/5gController.js:module.exports.handleLinkStatus = handleLinkStatus;
+    // ../TSR/racoam/src/ChecksumError.js:module.exports = ChecksumError;
 
     stdout.split("\n").slice(0, -1).forEach(function(element) {
-        var element_array = element.split(':'),
-            file = element_array[0],
-            func = element_array[1];
-        file_name = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
-        function_name = func.split('exports.');
-        aux = function_name[1].split('=');
-        export_name = aux[0];
+            var element_array = element.split(':'),
+                file = element_array[0],
+                func = element_array[1];
+            file_name = file.replace(/\//gi, "_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/, "");
+            function_name = func.split('exports');
+            aux = function_name[1].split('=');
+            export_name = aux[0].replace(/\s/g, '').replace(/\./gi, "");
 
-        addNewFileModule(file_name, "internal");
 
-        BIM.files[file_name].all_exports.push(export_name);
+            addNewFileModule(file_name, "internal");
 
+            BIM.files[file_name].all_exports.push(export_name);
     });
 };
 
 
 function storeAllFilesAndRequires(stdout) {
-    // console.log("Error: %s\nStderr: %s\nStdout: %s\n", error, stderr, stdout);
+
     stdout.split("\n").slice(0, -1).forEach(function(element) {
         console.log("Line: %s", element);
         var array = element.split(':');
@@ -166,12 +167,13 @@ function displayAllBIM() {
 
 function generateResults(){
     var afunc, pufunc,pvfunc;
+    var index = 0;
 
     Object.keys(BIM.files).filter(function(element){
-        // console.log("Za element: ", JSON.stringify(BIM.files[element],null,4));
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
-    }).forEach(function(module_name){
+    }).forEach(function(module_name,i){
         console.log("Generating results for %s", module_name);
+        index = i;
 
         var public_functions = [];
         var private_functions = [];
@@ -181,7 +183,7 @@ function generateResults(){
 
         pufunc = BIM.files[module_name].all_exports;
         pufunc.forEach(function(element){public_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
-        pvfunc = _.without(afunc, pufunc).forEach(function(element){private_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+        pvfunc = _.difference(afunc, pufunc).forEach(function(element){private_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
 
 
         var puml_code =
@@ -205,9 +207,9 @@ function generateResults(){
             if(err) {
                 return console.log(err);
             }
-            console.log("The file was saved!");
         });
     });
+    console.log("Generated %s files.",index);
 }
 
 
@@ -225,7 +227,7 @@ function main (){
             // console.log(stdout);
             storeAllFilesAndFunctions(stdout);
         })
-        .then(function (result) {
+        .then(function () {
             return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\"");
         })
         .then(function (result) {
@@ -233,7 +235,8 @@ function main (){
             // console.log(stdout);
             storeAllFilesAndRequires(stdout);
             return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"module.exports.\" | grep -iv \"forTests\"");
-        }).then(function(result){
+        })
+        .then(function(result){
             var stdout = result.stdout;
             storeAllFilesAndExports(stdout);
         })

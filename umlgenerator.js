@@ -16,7 +16,7 @@ var BIM = { files : {},
 };
 
 function addNewFileModule(file, type) {
-	console.log("Add new file module: %s", file);
+	console.log("Add new file module: %s %s", file, type);
     if (!BIM.files.hasOwnProperty(file)) {
         BIM.files[file] =
         {
@@ -38,9 +38,10 @@ function storeAllFilesAndFunctions(stdout) {
         file1 = file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
         func1 = func.slice(0, func.indexOf("(")).replace(/^function /, "");
 
-        addNewFileModule(file1, "internal");
+        //addNewFileModule(file1, "internal");
+	var name = verifyAndAddRequireModule(file1);
 
-        BIM.files[file1].all_functions.push(func1);
+        BIM.files[name].all_functions.push(func1);
     });
 };
 
@@ -65,9 +66,10 @@ function storeAllFilesAndExports(stdout) {
             export_name = aux[0].replace(/\s/g, '').replace(/\./gi, "");
 
 
-            addNewFileModule(file_name, "internal");
+           // addNewFileModule(file_name, "internal");
+	    var name = verifyAndAddRequireModule(file1);
 
-            BIM.files[file_name].all_exports.push(export_name);
+            BIM.files[name].all_exports.push(export_name);
     });
 };
 
@@ -91,9 +93,10 @@ function storeAllFilesAndRequires(stdout) {
         //console.log(">>>>nameOfRequire: \"%s\", index: %d, length: %d!", nameOfRequire, nameOfRequire.indexOf("require(\""), nameOfRequire.length);
         nameOfRequire1 = nameOfRequire.slice(nameOfRequire.indexOf("require(\"") + 9, nameOfRequire.length);
         nameOfRequire2 = nameOfRequire1.slice(0, nameOfRequire1.indexOf("\""));
+	nameOfRequire2 = nameOfRequire2.replace(/\.js/, "");
         //console.log("File is: %s, require is: 0: %s. 1: %s, 2:%s!", file1, nameOfRequire, nameOfRequire1, nameOfRequire2);
 
-        addNewFileModule(file1, "internal");
+        //addNewFileModule(file1, "internal");
 
         var nameOfVarRequire = "?undefined?";
         if (nameOfRequire.indexOf("var ") > -1) {
@@ -109,7 +112,7 @@ function storeAllFilesAndRequires(stdout) {
         obj["absoluteNameOfRequire"] = completeName;
 
 
-        BIM.files[file1].all_requires.push(obj);
+        BIM.files[completeName].all_requires.push(obj);
 
     });
 }
@@ -126,6 +129,7 @@ function verifyAndAddRequireModule(module) {
         //project nokia external module
 
         console.log("Found nokia external module: %s", module);
+	module = module.replace(/\//g, "_");
         addNewFileModule(module, "external");
 
     } else {
@@ -150,6 +154,7 @@ function verifyAndAddRequireModule(module) {
 
 function transformRelativeNameToAbsoluteName(name) {
 	console.log("999 %s", name);
+    //name = name.replace(/\.js/, "");
     return name.slice(name.lastIndexOf("\.") + 1, name.length).replace(/\//gi, "_");
 }
 
@@ -161,7 +166,7 @@ function getModuleCompleteName(module) {
     //the name obtained like this should match at least one of the already existing BIM files/modules
 
     var newName = transformRelativeNameToAbsoluteName(module);
-    console.log ("111 getModuleCompleteName for %s is %s", module, newName);
+    //console.log ("111 getModuleCompleteName for %s is %s", module, newName);
     var toReturn = newName;
 
     Object.keys(BIM.files).some(function(el) {
@@ -174,7 +179,7 @@ function getModuleCompleteName(module) {
 	}
     }); 
 
-    if (toReturn.indexOf("\.") === 0) {
+    if (toReturn.indexOf("\_") === 0) {
 
     	console.log ("200 getModuleCompleteName for %s is %s", module, toReturn);
 

@@ -97,6 +97,7 @@ function storeAllFilesAndRequires(stdout) {
         //console.log("File is: %s, require is: 0: %s. 1: %s, 2:%s!", file1, nameOfRequire, nameOfRequire1, nameOfRequire2);
 
         //addNewFileModule(file1, "internal");
+	var fileName = verifyAndAddRequireModule(file1);
 
         var nameOfVarRequire = "?undefined?";
         if (nameOfRequire.indexOf("var ") > -1) {
@@ -112,7 +113,7 @@ function storeAllFilesAndRequires(stdout) {
         obj["absoluteNameOfRequire"] = completeName;
 
 
-        BIM.files[completeName].all_requires.push(obj);
+        BIM.files[fileName].all_requires.push(obj);
 
     });
 }
@@ -123,7 +124,7 @@ function extendName(module) {
 
 function verifyAndAddRequireModule(module) {
     moduleCompleteName = getModuleCompleteName(module);
-    //console.log("Checking if module is new: %s", module);
+    console.log("Checking if module is new: %s with completeNm %s", module, moduleCompleteName);
 
     if (module.indexOf("@") > -1) {
         //project nokia external module
@@ -137,7 +138,7 @@ function verifyAndAddRequireModule(module) {
         // "./cm/localCellQueryApi" or
         // "../../src/rcpServices/manager")
 
-        if (module.lastIndexOf("\.") > -1) {
+        if (moduleCompleteName.indexOf(BIM.path2) > -1) {
             //project local module name
 
             console.log("Found local module name: %s", module);
@@ -314,7 +315,7 @@ function main (){
             storeAllFilesAndFunctions(stdout);
         })
         .then(function () {
-            return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\"");
+            return exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"require(\" | grep -iv \"return require\"");
         })
         .then(function (result) {
             var stdout = result.stdout;

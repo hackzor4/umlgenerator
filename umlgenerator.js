@@ -118,6 +118,10 @@ function storeAllFilesAndRequires(stdout) {
     });
 }
 
+function extendName(module) {
+	return BIM.path2 + module;
+}
+
 function verifyAndAddRequireModule(module, moduleCompleteName) {
     //console.log("Checking if module is new: %s", module);
 
@@ -132,7 +136,12 @@ function verifyAndAddRequireModule(module, moduleCompleteName) {
         if (module.lastIndexOf("\.") > -1) {
             //project local module name
             console.log("Found local module name: %s", module);
-            //var moduleCompleteName = getModuleCompleteName(module);
+            var moduleCompleteName = getModuleCompleteName(module);
+		console.log("123 Add new file: %s", moduleCompleteName);
+		if(moduleCompleteName.indexOf(BIM.path2) === 0 ){
+			moduleCompleteName = extendName(moduleCompleteName);
+			console.log("456 Add new file: %s", moduleCompleteName);
+		}
             addNewFileModule(moduleCompleteName, "internal");
         } else { //simple name - so node standard module
             console.log("Found node external module: %s", module);
@@ -228,6 +237,7 @@ function main (){
     }
     var param = process.argv[2];
     BIM.path = param;
+    BIM.path2 = BIM.path.replace(/\//gi, "_").replace(/^\./gi, "").replace(/^\./gi, "").replace(/_$/gi, "");
 
     exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"")
         .then(function (result) {

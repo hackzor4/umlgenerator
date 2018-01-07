@@ -105,15 +105,11 @@ function storeAllFilesAndRequires(stdout) {
         var obj = {} ;
         obj["require"] = nameOfRequire2;
         obj["nameOfVariable"] = nameOfVarRequire;
-        var newName = getModuleCompleteName(nameOfRequire2);
-        obj["absoluteNameOfRequire"] = newName;
-        obj["absoluteNameOfRequirwrw"] = "trilii";
-	//console.log("new name is: %s for %s", newName, nameOfRequire2 );
+        var completeName = verifyAndAddRequireModule(nameOfRequire2);
+        obj["absoluteNameOfRequire"] = completeName;
+
 
         BIM.files[file1].all_requires.push(obj);
-
-        //check if module require is from current code (file_type = internal) or not - will be added as file_type=external
-        verifyAndAddRequireModule(nameOfRequire2, newName);
 
     });
 }
@@ -122,36 +118,38 @@ function extendName(module) {
 	return BIM.path2 + module;
 }
 
-function verifyAndAddRequireModule(module, moduleCompleteName) {
+function verifyAndAddRequireModule(module) {
+    moduleCompleteName = getModuleCompleteName(module);
     //console.log("Checking if module is new: %s", module);
 
     if (module.indexOf("@") > -1) {
         //project nokia external module
+
         console.log("Found nokia external module: %s", module);
         addNewFileModule(module, "external");
+
     } else {
         // solve path to module as it could be something like:
         // "./cm/localCellQueryApi" or
         // "../../src/rcpServices/manager")
+
         if (module.lastIndexOf("\.") > -1) {
             //project local module name
+
             console.log("Found local module name: %s", module);
-            var moduleCompleteName = getModuleCompleteName(module);
-		console.log("123 Add new file: %s %d", moduleCompleteName, moduleCompleteName.indexOf(BIM.path2));
-		if(moduleCompleteName.indexOf(BIM.path2) === -1 ){
-			moduleCompleteName = extendName(moduleCompleteName);
-			console.log("456 Add new file: %s", moduleCompleteName);
-		}
             addNewFileModule(moduleCompleteName, "internal");
+
         } else { //simple name - so node standard module
+
             console.log("Found node external module: %s", module);
             addNewFileModule(module, "node_external");
         }
     }
+    return moduleCompleteName;
 }
 
 function transformRelativeNameToAbsoluteName(name) {
-    //file.replace(/\//gi,"_").replace(/^\.\./gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
+	console.log("999 %s", name);
     return name.slice(name.lastIndexOf("\.") + 1, name.length).replace(/\//gi, "_");
 }
 
@@ -161,8 +159,9 @@ function getModuleCompleteName(module) {
     // Example: "../common/networkPlanUtil" is transformed into "common_networkPlanUtil"
     // or "./util/waitFor" is transformed into "util_waitFor"
     //the name obtained like this should match at least one of the already existing BIM files/modules
+
     var newName = transformRelativeNameToAbsoluteName(module);
-    console.log ("getModuleCompleteName for %s is %s", module, newName);
+    console.log ("111 getModuleCompleteName for %s is %s", module, newName);
     var toReturn = newName;
 
     Object.keys(BIM.files).some(function(el) {
@@ -174,6 +173,19 @@ function getModuleCompleteName(module) {
 		return false;
 	}
     }); 
+
+    if (toReturn.indexOf("\.") === 0) {
+
+    	console.log ("200 getModuleCompleteName for %s is %s", module, toReturn);
+
+    	if(toReturn.indexOf(BIM.path2) === -1 ){
+        	toReturn = extendName(toReturn);
+        	console.log ("220 getModuleCompleteName for %s is %s", module, toReturn);
+    	}
+    }
+
+    console.log ("223 getModuleCompleteName for %s is %s", module, toReturn);
+
     return toReturn;
 }
 
@@ -187,13 +199,40 @@ function generateResults_oneAllRequiresUmlFile() {
 
     var puml_code = "@startuml\n" + "\n";
 
-    puml_code = puml_code + "package Internal_modules \[\n"
+    puml_code = puml_code + "package Internal_modules \{\n"
     Object.keys(BIM.files).filter(function(element){
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
-    }).forEach(function(module_name,i){
+    }).forEach(function(module_name){
 	puml_code = puml_code + "\[" + module_name + "\]" + "\n";
     });
-    puml_code = puml_code + "\]\n";
+    puml_code = puml_code + "\}\n\n";
+
+    puml_code = puml_code + "package Node_external_module \{\n"
+    Object.keys(BIM.files).filter(function(element){
+        return BIM.files[element].properties.file_type.indexOf('node_external') == 0;
+    }).forEach(function(module_name){
+	puml_code = puml_code + "\[" + module_name + "\]" + "\n";
+    });
+    puml_code = puml_code + "\}\n\n";
+
+    puml_code = puml_code + "package External_module \{\n"
+    Object.keys(BIM.files).filter(function(element){
+        return BIM.files[element].properties.file_type.indexOf('external') == 0;
+    }).forEach(function(module_name){
+	puml_code = puml_code + "\[" + module_name + "\]" + "\n";
+    });
+    puml_code = puml_code + "\}\n\n";
+
+    Object.keys(BIM.files).filter(function(element){
+        return BIM.files[element].properties.file_type.indexOf('internal') == 0;
+    }).forEach(function(module_name){
+        //	console.log("111 Found for module %s %j", module_name,  BIM.files[module_name].all_requires);
+        BIM.files[module_name].all_requires.forEach(function(req) {
+        	console.log("111 Found for module %s require %j", module_name,  req.absoluteNameOfRequire);
+        	puml_code = puml_code + "\[" + module_name + "\]-->\[" + req.absoluteNameOfRequire +"\]\n";
+	});
+    });
+
 
     puml_code = puml_code + "@enduml\n";
 

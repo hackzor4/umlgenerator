@@ -182,6 +182,30 @@ function displayAllBIM() {
     return BIM;
 }
 
+function generateResults_oneAllRequiresUmlFile() {
+    var uml_file = "allRequires.puml";
+
+    var puml_code = "@startuml\n" + "\n";
+
+    puml_code = puml_code + "package Internal_modules \[\n"
+    Object.keys(BIM.files).filter(function(element){
+        return BIM.files[element].properties.file_type.indexOf('internal') == 0;
+    }).forEach(function(module_name,i){
+	puml_code = puml_code + "\[" + module_name + "\]" + "\n";
+    });
+    puml_code = puml_code + "\]\n";
+
+    puml_code = puml_code + "@enduml\n";
+
+
+    fs.writeFile("./result_" + folder_name + "/"+ uml_file, puml_code, function(err) {
+        if(err) {
+            return console.log(err);
+        }
+    });
+    console.log("Generated one uml requires %s file.", uml_file);
+}
+
 function generateResults(){
     var afunc, pufunc,pvfunc;
     var index = 0;
@@ -263,6 +287,7 @@ function main (){
             return exec("mkdir result_" + folder_name);
         })
         .then(generateResults)
+        .then(generateResults_oneAllRequiresUmlFile)
         .catch(function (err) {
             console.error('ERROR: ', err);
         });

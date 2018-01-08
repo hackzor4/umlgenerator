@@ -298,6 +298,55 @@ function generateResults(){
     console.log("Generated %s files.",index);
 }
 
+function generateResults2(){
+    var afunc, pufunc,pvfunc;
+    var index = 0;
+
+    Object.keys(BIM.files).filter(function(element){
+        return BIM.files[element].properties.file_type.indexOf('internal') == 0;
+    }).forEach(function(module_name,i){
+        console.log("Generating results for %s", module_name);
+        index = i;
+
+        var public_functions = [];
+        var private_functions = [];
+
+
+        afunc = BIM.files[module_name].all_functions;
+        pufunc = BIM.files[module_name].all_exports;
+
+        pufunc.forEach(function(element){public_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+        pvfunc = _.difference(afunc, pufunc).forEach(function(element){private_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
+
+
+        var puml_code =
+        "@startuml\n"+
+            "\n" +
+            "package \"" + module_name + "\" {\n" +
+            "    package \" Nokia modules \" {\n" +
+            // afunctions.toString().replace(/,+/g, '')+
+            "    }\n" +
+            "    package \" Node external \" {\n" +
+            public_functions.toString().replace(/,+/g, '')+
+            "    }\n" +
+            "    package \" Internal modules \" {\n" +
+            private_functions.toString().replace(/,+/g, '')+
+            "    }\n" +
+            "}\n" +
+            "}\n" +
+            "@enduml\n";
+
+
+
+        fs.writeFile("./result_" + folder_name + "/"+ module_name +".puml", puml_code, function(err) {
+            if(err) {
+                return console.log(err);
+            }
+        });
+    });
+    console.log("Generated %s files.",index);
+}
+
 
 function main (){
     if (process.argv.length <= 2) {

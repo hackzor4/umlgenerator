@@ -29,7 +29,7 @@ function addNewFileModule(file, type) {
         };
     };
 }
-
+// A doua modificare
 function storeAllFilesAndFunctions(stdout) {
     stdout.split("\n").slice(0, -1).forEach(function(element) {
         // console.log("Line: %s", element);

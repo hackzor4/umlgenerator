@@ -1,3 +1,4 @@
+//primavara incepe cu tine
 var Promise = require('bluebird');
 var exec = require('child-process-promise').exec;
 var fs = require('fs');

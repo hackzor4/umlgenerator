@@ -1,4 +1,6 @@
 //primavara incepe cu tine
+//prima ploie de vara nu tine
+//prima dragoste NU, nu se uita niciodat
 var Promise = require('bluebird');
 var exec = require('child-process-promise').exec;
 var fs = require('fs');

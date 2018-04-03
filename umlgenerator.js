@@ -13,6 +13,7 @@ var resultsDate = year + "_" + month + "_" + day + "_" + hours + "_" + minutes;
 var folder_name = resultsDate.toString();
 
 var BIM = { files : {}};
+//De la prima modificare in Git Alexandra
 
 function addNewFileModule(file, type) {
 	console.log("Add new file module: %s %s", file, type);

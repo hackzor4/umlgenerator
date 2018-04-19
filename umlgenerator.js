@@ -240,14 +240,13 @@ function generateResults_oneAllRequiresUmlFile() {
     }).forEach(function(module_name){
         //	console.log("111 Found for module %s %j", module_name,  BIM.files[module_name].all_requires);
         BIM.files[module_name].all_requires.forEach(function(req) {
-            console.log("111 Found for module %s require %j", module_name,  req.absoluteNameOfRequire);
-            puml_code = puml_code + "\[" + module_name + "\]-->\[" + req.absoluteNameOfRequire +"\]\n";
+            if (linkToModuleAllowedToDisplay(req.absoluteNameOfRequire) >= 0) {
+                puml_code = puml_code + "\[" + module_name + "\]-->\[" + req.absoluteNameOfRequire + "\]\n";
+            }
         });
     });
 
-
     puml_code = puml_code + "@enduml\n";
-
 
     fs.writeFile("./result_" + folder_name + "/"+ uml_file, puml_code, function(err) {
         if(err) {
@@ -255,6 +254,14 @@ function generateResults_oneAllRequiresUmlFile() {
         }
     });
     console.log("Generated one uml requires %s file.", uml_file);
+}
+
+function linkToModuleAllowedToDisplay(module) {
+    return (BIM.display_link_to_node_external_modules.indexOf("yes") === 0 && BIM.files[module].properties.file_type.indexOf("node_external") === 0)
+        ||
+        (BIM.display_link_to_external_modules.indexOf("yes") ===0 && BIM.files[module].properties.file_type.indexOf("external") === 0)
+        ||
+        (BIM.files[module].properties.file_type.indexOf("internal"));
 }
 
 function generateResults(){
@@ -304,15 +311,49 @@ function generateResults(){
     console.log("Generated %s files.",index);
 }
 
+function display_help() {
+    console.log("\n\n\nThis script will generate PlantUml compatible files based on the source code given as argument");
+    console.log("Possible options: ");
+    console.log("\t--path <path> : mandatory");
+    console.log("\t--display_link_to_node_external_modules <yes/no> : will display link between internal modules and node external modules. Default: no");
+    console.log("\t--display_link_to_external_modules <yes/no> : will display link between internal modules and external modules. Default: no");
+    console.log("\t--display_reduced_path <yes/no> : will display the reduced module name. Default: yes");
+    console.log("\t--help : display this help\n\n\n");
+}
 
-function main (){
-    if (process.argv.length <= 2) {
-        console.log("Please enter the path");
+function readArguments(argv) {
+    console.log("ARGS received: %s", JSON.stringify(argv));
+    if (argv.length <= 3) {
+        display_help();
         process.exit(-1);
     }
-    var param = process.argv[2];
-    BIM.path = param;
-    BIM.path2 = cleanPath(BIM.path);
+
+    _.map(argv, function (el, idx) {
+        if (el.indexOf("--path") === 0) {
+            BIM.path = argv[idx+1];
+            BIM.path2 = cleanPath(BIM.path);
+        }
+        if (el.indexOf("--display_link_to_node_external_modules") === 0) {
+            BIM.display_link_to_node_external_modules = argv[idx+1];
+        }
+        if (el.indexOf("--display_link_to_external_modules") === 0) {
+            BIM.display_link_to_external_modules = argv[idx+1];
+        }
+        if (el.indexOf("--display_reduced_path") === 0) {
+            BIM.display_reduced_path = argv[idx+1];
+        }
+    });
+}
+
+function setInitialDefaultConfig(){
+    BIM.display_link_to_node_external_modules = "no";
+    BIM.display_link_to_external_modules = "no";
+    BIM.display_reduced_path = "yes";
+}
+
+function main (){
+    setInitialDefaultConfig();
+    readArguments(process.argv);
 
     exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", {maxBuffer: 1024 * 1024 *500})
         .then(function (result) {

@@ -1,6 +1,3 @@
-//primavara incepe cu tine
-//prima ploie de vara nu tine
-//prima dragoste NU, nu se uita niciodat
 var Promise = require('bluebird');
 var exec = require('child-process-promise').exec;
 var fs = require('fs');
@@ -36,7 +33,7 @@ function addNewFileModule(file, type) {
             };
     };
 }
-// A doua modificare
+
 function storeAllFilesAndFunctions(stdout) {
     stdout.split("\n").slice(0, -1).forEach(function(element) {
         // console.log("Line: %s", element);

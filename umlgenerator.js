@@ -1,3 +1,6 @@
+//primavara incepe cu tine
+//prima ploie de vara nu tine
+//prima dragoste NU, nu se uita niciodat
 var Promise = require('bluebird');
 var exec = require('child-process-promise').exec;
 var fs = require('fs');
@@ -18,6 +21,7 @@ function cleanPath(file) {
      return file.replace(/\//gi,"_").replace(/\.\._/gi, "").replace(/\.js$/gi, "").replace(/^_/,"");
 }
 
+
 function addNewFileModule(file, type) {
     console.log("Add new file module: %s %s", file, type);
     if (!BIM.files.hasOwnProperty(file)) {
@@ -32,7 +36,7 @@ function addNewFileModule(file, type) {
             };
     };
 }
-
+// A doua modificare
 function storeAllFilesAndFunctions(stdout) {
     stdout.split("\n").slice(0, -1).forEach(function(element) {
         // console.log("Line: %s", element);
@@ -45,6 +49,7 @@ function storeAllFilesAndFunctions(stdout) {
         var name = verifyAndAddRequireModule(file1);
 
         BIM.files[name].all_functions.push(func1);
+
     });
 };
 
@@ -73,6 +78,7 @@ function storeAllFilesAndExports(stdout) {
         var name = verifyAndAddRequireModule(file1);
 
         BIM.files[name].all_exports.push(export_name);
+
     });
 };
 
@@ -146,7 +152,7 @@ function verifyAndAddRequireModule(module) {
             //project local module name
 
             console.log("Found local module name: %s", module);
-            addNewFileModule(moduleCompleteName, "internal");
+            addNewFileModule(moduleCompleteName, "internal_ext");
 
         } else { //simple name - so node standard module
 
@@ -208,6 +214,7 @@ function displayAllBIM() {
 function generateResults_oneAllRequiresUmlFile() {
     var uml_file = "allRequires.puml";
 
+
     var puml_code = "@startuml\n" + "\n";
 
     puml_code = puml_code + "package Internal_modules \{\n"
@@ -248,6 +255,7 @@ function generateResults_oneAllRequiresUmlFile() {
 
     puml_code = puml_code + "@enduml\n";
 
+
     fs.writeFile("./result_" + folder_name + "/"+ uml_file, puml_code, function(err) {
         if(err) {
             return console.log(err);
@@ -269,7 +277,7 @@ function generateResults(){
     var index = 0;
 
     Object.keys(BIM.files).filter(function(element){
-        return BIM.files[element].properties.file_type.indexOf('internal') == 0;
+        return BIM.files[element].properties.file_type.indexOf('internal_init') == 0;
     }).forEach(function(module_name,i){
         console.log("Generating results for %s", module_name);
         index = i;
@@ -277,13 +285,11 @@ function generateResults(){
         var public_functions = [];
         var private_functions = [];
 
-
         afunc = BIM.files[module_name].all_functions;
-
         pufunc = BIM.files[module_name].all_exports;
+
         pufunc.forEach(function(element){public_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
         pvfunc = _.difference(afunc, pufunc).forEach(function(element){private_functions.push("\xa0\xa0\xa0\xa0["+element+"]\n");});
-
 
         var puml_code =
             "@startuml\n" +
@@ -328,6 +334,7 @@ function readArguments(argv) {
         process.exit(-1);
     }
 
+
     _.map(argv, function (el, idx) {
         if (el.indexOf("--path") === 0) {
             BIM.path = argv[idx+1];
@@ -358,7 +365,6 @@ function main (){
     exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", {maxBuffer: 1024 * 1024 *500})
         .then(function (result) {
             var stdout = result.stdout;
-            // console.log(stdout);
             storeAllFilesAndFunctions(stdout);
         })
         .then(function () {

@@ -265,12 +265,15 @@ function generateResults_oneAllRequiresUmlFile_with_functions() {
     var uml_file = "allRequires_with_functions.puml";
     var puml_code = "@startuml\n" + "\n";
 
+    //  Insert code below  //
+
     Object.keys(BIM.files).filter(function(element){
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
     }).forEach(function(module_name){
         puml_code = puml_code  + module_name + ":" + "" +"\n";
     });
-
+    
+    // ^^^^^^^^^^^^^^^^^ //
     puml_code = puml_code + "@enduml\n";
     
     fs.writeFile("./result_" + folder_name + "/"+ uml_file, puml_code, function(err) {

@@ -261,6 +261,26 @@ function generateResults_oneAllRequiresUmlFile() {
     console.log("Generated one uml requires %s file.", uml_file);
 }
 
+function generateResults_oneAllRequiresUmlFile_with_functions() {
+    var uml_file = "allRequires_with_functions.puml";
+    var puml_code = "@startuml\n" + "\n";
+
+    Object.keys(BIM.files).filter(function(element){
+        return BIM.files[element].properties.file_type.indexOf('internal') == 0;
+    }).forEach(function(module_name){
+        puml_code = puml_code  + module_name + ":" + "" +"\n";
+    });
+
+    puml_code = puml_code + "@enduml\n";
+    
+    fs.writeFile("./result_" + folder_name + "/"+ uml_file, puml_code, function(err) {
+        if(err) {
+            return console.log(err);
+        }
+    });
+    console.log("Generated one uml requires %s file.", uml_file);
+}
+
 function linkToModuleAllowedToDisplay(module) {
     return (BIM.display_link_to_node_external_modules.indexOf("yes") === 0 && BIM.files[module].properties.file_type.indexOf("node_external") === 0)
         ||
@@ -383,6 +403,10 @@ function main (){
         })
         .then(generateResults)
         .then(generateResults_oneAllRequiresUmlFile)
+        .then(function(result){
+            console.log("Inside our then");
+            generateResults_oneAllRequiresUmlFile_with_functions();
+        })
         .catch(function (err) {
             console.error('ERROR: ', err);
         });

@@ -1,4 +1,4 @@
-var fisier2 = require('fisier2');
+var fisier2 = require("fisier2");
 
 
 

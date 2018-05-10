@@ -266,7 +266,6 @@ function generateResults_oneAllRequiresUmlFile_with_functions() {
     var puml_code = "@startuml\n" + "\n";
 
     //  Insert code below  //
-
     Object.keys(BIM.files).filter(function(element){
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
     }).forEach(function(module_name){

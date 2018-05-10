@@ -1,4 +1,4 @@
-var fisier1 = require('fisier1.js');
+var fisier1 = require("fisier1");
 
 function functie31(){
 

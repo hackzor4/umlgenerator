@@ -269,8 +269,15 @@ function generateResults_oneAllRequiresUmlFile_with_functions() {
     Object.keys(BIM.files).filter(function(element){
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
     }).forEach(function(module_name){
-        Object.keys(BIM.files[module_name].all_functions).forEach(function(func){
-        puml_code = puml_code  + module_name + ":" + BIM.files[module_name].all_functions[func] +"\n";})
+        Object.keys(BIM.files[module_name].all_functions)
+            .forEach(function(func){
+                puml_code = puml_code  + module_name + ":" + BIM.files[module_name].all_functions[func] +"\n";
+            });
+        //puml_code = puml_code  + module_name +" --> "+"\n";
+        Object.keys(BIM.files[module_name].all_requires)
+            .forEach(function(re){
+                puml_code = puml_code  + module_name + " --> " + BIM.files[module_name].all_requires[re].absoluteNameOfRequire +"\n";
+            });
     });
     
     // ^^^^^^^^^^^^^^^^^ //

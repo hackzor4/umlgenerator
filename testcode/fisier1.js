@@ -1,5 +1,5 @@
 var fisier2 = require("fisier2");
-
+var fisier3 = require("fisier3");
 
 
 function functie1(){

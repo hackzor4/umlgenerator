@@ -36,7 +36,7 @@ function addNewFileModule(file, type) {
 
 function storeAllFilesAndFunctions(stdout) {
     stdout.split("\n").slice(0, -1).forEach(function(element) {
-        // console.log("Line: %s", element);
+        console.log("000 Line: %s", element);
         var array = element.split(':'),
             file = array[0], func = array[1];
         file1 = cleanPath(file);
@@ -83,25 +83,26 @@ function storeAllFilesAndExports(stdout) {
 function storeAllFilesAndRequires(stdout) {
 
     stdout.split("\n").slice(0, -1).forEach(function(element) {
-        console.log("Line: %s", element);
+        console.log("123456 Line: %s", element);
         var array = element.split(':');
 
         file = array[0];
         nameOfRequire = array[1] + ((array[2]===undefined)?"":array[2]);
         file1 = cleanPath(file);
-
+        nameOfRequire0 = nameOfRequire.replace(/\x27/g, '\"');
         //example lines:
         //var btsUri = require("@rcp/bts-uri-utils");
         //var child_process = Promise.promisifyAll(require("child_process"));
         //"l2PsDebugLogCtrl": require("./laOperationHandlers/l2DebugLogHandler")
         //promisifyAll(require("node-json-rpc"));
 
-        //console.log(">>>>nameOfRequire: \"%s\", index: %d, length: %d!", nameOfRequire, nameOfRequire.indexOf("require(\""), nameOfRequire.length);
-        nameOfRequire1 = nameOfRequire.slice(nameOfRequire.indexOf("require(\"") + 9, nameOfRequire.length);
+        console.log("12345 >>>>nameOfRequire: \"%s\", index: %d, length: %d!", nameOfRequire0, nameOfRequire0.indexOf("require(\""), nameOfRequire0.length);
+
+        nameOfRequire1 = nameOfRequire0.slice(nameOfRequire0.indexOf("require(\"") + 9, nameOfRequire0.length);
         nameOfRequire2 = nameOfRequire1.slice(0, nameOfRequire1.indexOf("\""));
         nameOfRequire2 = nameOfRequire2.replace(/\.js/, "");
         //nameOfRequire2 = cleanPath(nameOfRequire2);
-        //console.log("File is: %s, require is: 0: %s. 1: %s, 2:%s!", file1, nameOfRequire, nameOfRequire1, nameOfRequire2);
+        console.log("12345 File is: %s, require is: 0: %s. 1: %s, 2:%s!", file1, nameOfRequire, nameOfRequire1, nameOfRequire2);
 
         //addNewFileModule(file1, "internal");
         var fileName = verifyAndAddRequireModule(file1);
@@ -162,6 +163,9 @@ function verifyAndAddRequireModule(module) {
 
 function transformRelativeNameToAbsoluteName(name) {
     console.log("9999 %s", name);
+    //modified to match names containg \. like ajv.bundle.js
+    file_name = name.slice(name.lastIndexOf("\/") + 1, name.length);
+    console.log("9999filename %s", file_name);
     console.log("998 %s %s", name, name.slice(name.lastIndexOf("\.") + 1, name.length).replace(/\//gi, "_"));
     //name = name.replace(/\.js/, "");
     return name.slice(name.lastIndexOf("\.") + 1, name.length).replace(/\//gi, "_");

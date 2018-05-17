@@ -39,8 +39,12 @@ function storeAllFilesAndFunctions(stdout) {
         console.log("000 Line: %s", element);
         var array = element.split(':'),
             file = array[0], func = array[1];
+
         file1 = cleanPath(file);
-        func1 = func.slice(0, func.indexOf("(")).replace(/^function /, "");
+        func0 = func.replace(/^\s+/g, '');
+        func1 = func0.slice(0, func0.indexOf("(")).replace(/^function /, "");
+
+        console.log("000111 Line: %s", func1);
 
         //addNewFileModule(file1, "internal");
         var name = verifyAndAddRequireModule(file1);
@@ -393,7 +397,7 @@ function main (){
     setInitialDefaultConfig();
     readArguments(process.argv);
 
-    exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^function \"", {maxBuffer: 1024 * 1024 *500})
+    exec("find " + BIM.path + " -type f -name \"*.js\" | xargs grep -i \"^\\s*function \"", {maxBuffer: 1024 * 1024 *500})
         .then(function (result) {
             var stdout = result.stdout;
             storeAllFilesAndFunctions(stdout);

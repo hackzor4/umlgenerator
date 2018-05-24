@@ -1,4 +1,7 @@
-var fisier1 = require("fisier1");
+var fisier1 = require("testcode/folder-1/fisier1");
+var fisier14 = require("fisier14");
+var fisier8 = require("fisier8");
+var fisier10 = require("fisier10");
 
 function functie31(){
 

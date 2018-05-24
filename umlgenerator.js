@@ -276,8 +276,9 @@ function generateResults_oneAllRequiresUmlFile_with_functions() {
     Object.keys(BIM.files).filter(function(element){
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
     }).forEach(function(module_name){
+       var moduleNameWithSlash = module_name.replace(/_/g,"/");
        var mod = module_name.replace("-","_");
-
+        puml_code = puml_code + "state " + "\"" + moduleNameWithSlash + "\"" + " as " + mod + "\n";
         Object.keys(BIM.files[module_name].all_functions)
             .forEach(function(func){
                 puml_code = puml_code  + mod + ":" + BIM.files[module_name].all_functions[func] +"\n";

@@ -1,4 +1,6 @@
 var fisier3 = require("fisier3");
+var fisier13 = require("fisier13");
+var fisier5 = require("fisier5");
 
 function functie21(){
 

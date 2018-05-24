@@ -196,7 +196,7 @@ function getModuleCompleteName(module) {
         }
     });
 
-    if (toReturn.indexOf("\_") === 0) {
+    if (toReturn.indexOf("_") === 0) {
 
         console.log ("200 getModuleCompleteName for %s is %s", module, toReturn);
 
@@ -272,19 +272,20 @@ function generateResults_oneAllRequiresUmlFile() {
 function generateResults_oneAllRequiresUmlFile_with_functions() {
     var uml_file = "allRequires_with_functions.puml";
     var puml_code = "@startuml\n" + "\n";
-
     //  Insert code below  //
     Object.keys(BIM.files).filter(function(element){
         return BIM.files[element].properties.file_type.indexOf('internal') == 0;
     }).forEach(function(module_name){
+       var mod = module_name.replace("-","_");
+
         Object.keys(BIM.files[module_name].all_functions)
             .forEach(function(func){
-                puml_code = puml_code  + module_name + ":" + BIM.files[module_name].all_functions[func] +"\n";
+                puml_code = puml_code  + mod + ":" + BIM.files[module_name].all_functions[func] +"\n";
             });
         //puml_code = puml_code  + module_name +" --> "+"\n";
         Object.keys(BIM.files[module_name].all_requires)
             .forEach(function(re){
-                puml_code = puml_code  + module_name + " --> " + BIM.files[module_name].all_requires[re].absoluteNameOfRequire +"\n";
+                puml_code = puml_code  + mod + " --> " + BIM.files[module_name].all_requires[re].absoluteNameOfRequire.replace("-","_") +"\n";
             });
     });
     
